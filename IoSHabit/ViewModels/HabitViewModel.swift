@@ -29,27 +29,10 @@ final class HabitViewModel {
         modelContext.delete(habit)
     }
 
-    // MARK: - Kolla om en vana är utförd idag
-
-    func isCompletedToday(_ habit: Habit) -> Bool {
-        // Kontrollera om någon av datumen i completedDates
-        // matchar dagens datum (ignorerar klockslag)
-        habit.completedDates.contains { date in
-            Calendar.current.isDateInToday(date)
-        }
-    }
-
     // MARK: - Markera en vana som utförd (eller ångra)
 
     func toggleCompletion(for habit: Habit) {
-        if isCompletedToday(habit) {
-            // Om redan utförd idag — ta bort dagens datum
-            habit.completedDates.removeAll { date in
-                Calendar.current.isDateInToday(date)
-            }
-        } else {
-            // Annars — lägg till dagens datum
-            habit.completedDates.append(.now)
-        }
+        // Logiken lever nu på Habit-modellen själv
+        habit.toggleToday()
     }
 }
