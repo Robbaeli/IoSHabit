@@ -6,11 +6,23 @@ struct AddHabitView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var title = ""
+    @State private var hasTriedToSave = false
+
+    private var isTitleEmpty: Bool {
+        title.trimmingCharacters(in: .whitespaces).isEmpty
+    }
 
     var body: some View {
         NavigationStack {
             Form {
-                TextField("Namn på vanan", text: $title)
+                Section {
+                    TextField("Namn på vanan", text: $title)
+                } footer: {
+                    if hasTriedToSave && isTitleEmpty {
+                        Text("Du måste ange ett namn för vanan.")
+                            .foregroundStyle(.red)
+                    }
+                }
             }
             .navigationTitle("Ny vana")
             .toolbar {
@@ -21,11 +33,13 @@ struct AddHabitView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Spara") {
+                        hasTriedToSave = true
+                        guard !isTitleEmpty else { return }
                         let habit = Habit(title: title)
                         modelContext.insert(habit)
                         dismiss()
                     }
-                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .disabled(hasTriedToSave && isTitleEmpty)
                 }
             }
         }
