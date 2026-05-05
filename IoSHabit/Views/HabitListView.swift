@@ -18,7 +18,9 @@ struct HabitListView: View {
                     }
                 }
             }
-            .navigationTitle("Mina vanor")
+            .scrollContentBackground(.hidden)
+            .background(Color.mint.opacity(0.15))
+            .navigationTitle("IOSHabit")
             .overlay {
                 if habits.isEmpty {
                     ContentUnavailableView(

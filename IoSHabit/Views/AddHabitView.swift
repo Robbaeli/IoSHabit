@@ -24,6 +24,8 @@ struct AddHabitView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.mint.opacity(0.15))
             .navigationTitle("Ny vana")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
