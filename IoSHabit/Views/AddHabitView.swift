@@ -7,6 +7,7 @@ struct AddHabitView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(NotificationManager.self) private var notificationManager
 
+    @State private var viewModel: HabitViewModel?
     @State private var title = ""
     @State private var hasTriedToSave = false
     @State private var reminderEnabled = false
@@ -50,15 +51,27 @@ struct AddHabitView: View {
                     Button("Spara") {
                         hasTriedToSave = true
                         guard !isTitleEmpty else { return }
-                        let habit = Habit(
-                            title: title,
-                            reminderTime: reminderEnabled ? reminderTime : nil
-                        )
-                        modelContext.insert(habit)
-                        notificationManager.scheduleDaily(for: habit)
-                        dismiss()
+                        let reminder = reminderEnabled ? reminderTime : nil
+                        if let habit = viewModel?.addHabit(name: title, reminderTime: reminder) {
+                            notificationManager.scheduleDaily(for: habit)
+                            dismiss()
+                        }
                     }
                     .disabled(hasTriedToSave && isTitleEmpty)
+                }
+            }
+            // Visar felmeddelande från VM om sparningen misslyckas
+            .alert("Något gick fel", isPresented: Binding(
+                get: { viewModel?.errorMessage != nil },
+                set: { if !$0 { viewModel?.errorMessage = nil } }
+            )) {
+                Button("OK") { viewModel?.errorMessage = nil }
+            } message: {
+                Text(viewModel?.errorMessage ?? "")
+            }
+            .onAppear {
+                if viewModel == nil {
+                    viewModel = HabitViewModel(modelContext: modelContext)
                 }
             }
         }

@@ -8,18 +8,21 @@ struct HabitListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(NotificationManager.self) private var notificationManager
     @State private var showingAddSheet = false
+    @State private var viewModel: HabitViewModel?
 
     var body: some View {
         NavigationStack {
             List {
                 ForEach(habits) { habit in
-                    HabitRowView(habit: habit)
+                    HabitRowView(habit: habit) {
+                        viewModel?.toggleToday(for: habit)
+                    }
                 }
                 // Svep för att radera
                 .onDelete { indexSet in
                     for index in indexSet {
                         notificationManager.cancel(for: habits[index])
-                        modelContext.delete(habits[index])
+                        viewModel?.deleteHabit(habits[index])
                     }
                 }
             }
@@ -44,6 +47,20 @@ struct HabitListView: View {
             // Sheet glider upp från botten när showingAddSheet blir true
             .sheet(isPresented: $showingAddSheet) {
                 AddHabitView()
+            }
+            // Visar felmeddelande om något går fel vid sparning
+            .alert("Fel", isPresented: Binding(
+                get: { viewModel?.errorMessage != nil },
+                set: { if !$0 { viewModel?.errorMessage = nil } }
+            )) {
+                Button("OK") { viewModel?.errorMessage = nil }
+            } message: {
+                Text(viewModel?.errorMessage ?? "")
+            }
+            .onAppear {
+                if viewModel == nil {
+                    viewModel = HabitViewModel(modelContext: modelContext)
+                }
             }
         }
     }

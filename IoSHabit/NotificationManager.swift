@@ -23,7 +23,7 @@ final class NotificationManager {
 
         let content = UNMutableNotificationContent()
         content.title = "Dags för din vana!"
-        content.body = habit.title
+        content.body = habit.name
         content.sound = .default
 
         let components = Calendar.current.dateComponents([.hour, .minute], from: reminderTime)

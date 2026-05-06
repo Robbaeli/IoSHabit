@@ -4,17 +4,15 @@ import SwiftData
 // @Model gör att klassen sparas i databasen via SwiftData
 @Model
 final class Habit {
-    var id: UUID
-    var title: String
+    var id: UUID = UUID()
+    var name: String
     var createdAt: Date
-    var completedDates: [Date]
+    var completedDates: [Date] = []
     var reminderTime: Date?
 
-    init(title: String, reminderTime: Date? = nil) {
-        self.id = UUID()
-        self.title = title
+    init(name: String, reminderTime: Date? = nil) {
+        self.name = name
         self.createdAt = .now
-        self.completedDates = []
         self.reminderTime = reminderTime
     }
 
@@ -23,43 +21,37 @@ final class Habit {
         completedDates.contains { Calendar.current.isDateInToday($0) }
     }
 
-    // Lägger till idag, men bara om det inte redan finns
-    func completeToday() {
-        guard !isCompletedToday else { return }
-        completedDates.append(.now)
-    }
-
-    // Tar bort dagens avcheckning
-    func uncompleteToday() {
-        completedDates.removeAll { Calendar.current.isDateInToday($0) }
-    }
-
-    // Växlar mellan avcheckad och ej avcheckad
-    func toggleToday() {
-        if isCompletedToday {
-            uncompleteToday()
-        } else {
-            completeToday()
-        }
-    }
-
-    // Räknar antal dagar i rad bakåt från idag
+    // Räknar antal dagar i rad, tillåter att idag inte är avcheckad ännu
     var currentStreak: Int {
         let calendar = Calendar.current
 
-        // Samla alla unika dagar i ett Set (tar bort klockslag och dubbletter)
-        let uniqueDays: Set<DateComponents> = Set(
-            completedDates.map { calendar.dateComponents([.year, .month, .day], from: $0) }
-        )
+        // Normalisera alla datum till kl 00:00 och ta bort dubbletter
+        let uniqueDays = Set(completedDates.map { calendar.startOfDay(for: $0) })
+        let sortedDays = uniqueDays.sorted(by: >)
 
-        var streak = 0
-        var dayToCheck = calendar.startOfDay(for: .now)
+        guard let latest = sortedDays.first else {
+            return 0
+        }
 
-        // Loopa bakåt dag för dag tills vi hittar en dag som saknas
-        while uniqueDays.contains(calendar.dateComponents([.year, .month, .day], from: dayToCheck)) {
-            streak += 1
-            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: dayToCheck) else { break }
-            dayToCheck = previousDay
+        // Om senaste inte är idag eller igår är streaken bruten
+        let today = calendar.startOfDay(for: Date())
+        let daysSinceLatest = calendar.dateComponents([.day], from: latest, to: today).day ?? 0
+
+        if daysSinceLatest > 1 {
+            return 0
+        }
+
+        // Räkna bakåt dag för dag
+        var streak = 1
+        var expected = calendar.date(byAdding: .day, value: -1, to: latest)!
+
+        for day in sortedDays.dropFirst() {
+            if day == expected {
+                streak += 1
+                expected = calendar.date(byAdding: .day, value: -1, to: expected)!
+            } else {
+                break
+            }
         }
 
         return streak

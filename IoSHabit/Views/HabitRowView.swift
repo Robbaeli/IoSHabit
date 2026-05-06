@@ -3,6 +3,7 @@ import SwiftUI
 // En rad i listan som visar en vana med ikon, namn och streak
 struct HabitRowView: View {
     var habit: Habit
+    var onToggle: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
@@ -12,12 +13,12 @@ struct HabitRowView: View {
                 .foregroundStyle(habit.isCompletedToday ? .green : .gray)
                 .onTapGesture {
                     withAnimation {
-                        habit.toggleToday()
+                        onToggle()
                     }
                 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(habit.title)
+                Text(habit.name)
                     .font(.headline)
                     .strikethrough(habit.isCompletedToday, color: .green)
 
