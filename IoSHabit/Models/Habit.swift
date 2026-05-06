@@ -7,12 +7,14 @@ final class Habit {
     var title: String
     var createdAt: Date
     var completedDates: [Date]
+    var reminderTime: Date?
 
-    init(title: String) {
+    init(title: String, reminderTime: Date? = nil) {
         self.id = UUID()
         self.title = title
         self.createdAt = .now
         self.completedDates = []
+        self.reminderTime = reminderTime
     }
 
     // Returnerar true om vanan redan är avcheckad idag

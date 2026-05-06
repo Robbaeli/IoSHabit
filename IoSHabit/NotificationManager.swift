@@ -14,4 +14,29 @@ final class NotificationManager {
             isAuthorized = false
         }
     }
+
+    func scheduleDaily(for habit: Habit) {
+        guard let reminderTime = habit.reminderTime else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Dags för din vana!"
+        content.body = habit.title
+        content.sound = .default
+
+        let components = Calendar.current.dateComponents([.hour, .minute], from: reminderTime)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+
+        let request = UNNotificationRequest(
+            identifier: habit.id.uuidString,
+            content: content,
+            trigger: trigger
+        )
+
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    func cancel(for habit: Habit) {
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: [habit.id.uuidString])
+    }
 }
