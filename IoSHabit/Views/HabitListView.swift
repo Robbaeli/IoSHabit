@@ -4,6 +4,7 @@ import SwiftData
 struct HabitListView: View {
     @Query var habits: [Habit]
     @Environment(\.modelContext) private var modelContext
+    @Environment(NotificationManager.self) private var notificationManager
     @State private var showingAddSheet = false
 
     var body: some View {
@@ -14,6 +15,7 @@ struct HabitListView: View {
                 }
                 .onDelete { indexSet in
                     for index in indexSet {
+                        notificationManager.cancel(for: habits[index])
                         modelContext.delete(habits[index])
                     }
                 }
@@ -23,11 +25,9 @@ struct HabitListView: View {
             .navigationTitle("IOSHabit")
             .overlay {
                 if habits.isEmpty {
-                    ContentUnavailableView(
-                        "Inga vanor ännu",
-                        systemImage: "list.bullet.clipboard",
-                        description: Text("Tryck + för att lägga till din första vana")
-                    )
+                    EmptyStateView {
+                        showingAddSheet = true
+                    }
                 }
             }
             .toolbar {
