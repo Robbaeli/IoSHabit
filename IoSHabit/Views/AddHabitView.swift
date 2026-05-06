@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 
+// Formulär för att skapa en ny vana, visas som sheet
 struct AddHabitView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -11,6 +12,7 @@ struct AddHabitView: View {
     @State private var reminderEnabled = false
     @State private var reminderTime = Calendar.current.date(from: DateComponents(hour: 8, minute: 0)) ?? .now
 
+    // Kollar om titeln är tom eller bara mellanslag
     private var isTitleEmpty: Bool {
         title.trimmingCharacters(in: .whitespaces).isEmpty
     }

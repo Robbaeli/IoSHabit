@@ -1,5 +1,6 @@
 import SwiftUI
 
+// Visas när det inte finns några vanor i listan
 struct EmptyStateView: View {
     var onAddTapped: () -> Void
 

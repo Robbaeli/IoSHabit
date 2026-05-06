@@ -1,38 +1,29 @@
 import Foundation
 import SwiftData
 
-// @Observable gör att SwiftUI automatiskt uppdaterar vyer
-// när data i denna klass ändras.
+// Mellanlager mellan vyerna och datan, hanterar logik för vanor
 @Observable
 final class HabitViewModel {
 
-    // ModelContext är kopplingen till SwiftData-databasen.
-    // Vi använder den för att spara, hämta och ta bort data.
     private var modelContext: ModelContext
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
 
-    // MARK: - Lägg till en ny vana
-
+    // Skapar en ny vana och sparar i databasen
     func addHabit(title: String) {
         let habit = Habit(title: title)
-        // insert() lägger till objektet i databasen
         modelContext.insert(habit)
     }
 
-    // MARK: - Ta bort en vana
-
+    // Tar bort en vana från databasen
     func deleteHabit(_ habit: Habit) {
-        // delete() tar bort objektet från databasen
         modelContext.delete(habit)
     }
 
-    // MARK: - Markera en vana som utförd (eller ångra)
-
+    // Växlar avcheckning via Habit-modellens egen funktion
     func toggleCompletion(for habit: Habit) {
-        // Logiken lever nu på Habit-modellen själv
         habit.toggleToday()
     }
 }

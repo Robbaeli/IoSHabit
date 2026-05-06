@@ -1,7 +1,9 @@
 import SwiftUI
 import SwiftData
 
+// Visar alla vanor i en lista
 struct HabitListView: View {
+    // Hämtar alla vanor från databasen automatiskt
     @Query var habits: [Habit]
     @Environment(\.modelContext) private var modelContext
     @Environment(NotificationManager.self) private var notificationManager
@@ -13,6 +15,7 @@ struct HabitListView: View {
                 ForEach(habits) { habit in
                     HabitRowView(habit: habit)
                 }
+                // Svep för att radera
                 .onDelete { indexSet in
                     for index in indexSet {
                         notificationManager.cancel(for: habits[index])
@@ -23,6 +26,7 @@ struct HabitListView: View {
             .scrollContentBackground(.hidden)
             .background(Color.mint.opacity(0.15))
             .navigationTitle("IOSHabit")
+            // Visar tom-vy om det inte finns några vanor
             .overlay {
                 if habits.isEmpty {
                     EmptyStateView {
@@ -37,6 +41,7 @@ struct HabitListView: View {
                     }
                 }
             }
+            // Sheet glider upp från botten när showingAddSheet blir true
             .sheet(isPresented: $showingAddSheet) {
                 AddHabitView()
             }

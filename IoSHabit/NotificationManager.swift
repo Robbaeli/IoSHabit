@@ -1,10 +1,12 @@
 import Foundation
 import UserNotifications
 
+// Hanterar notiser: begär tillstånd, schemalägger och avbryter påminnelser
 @Observable
 final class NotificationManager {
     private(set) var isAuthorized = false
 
+    // Ber användaren om lov att skicka notiser
     func requestAuthorization() async {
         do {
             let granted = try await UNUserNotificationCenter.current()
@@ -15,6 +17,7 @@ final class NotificationManager {
         }
     }
 
+    // Schemalägger en daglig notis som upprepas vid vald tid
     func scheduleDaily(for habit: Habit) {
         guard let reminderTime = habit.reminderTime else { return }
 
@@ -35,6 +38,7 @@ final class NotificationManager {
         UNUserNotificationCenter.current().add(request)
     }
 
+    // Tar bort schemalagd notis för en vana
     func cancel(for habit: Habit) {
         UNUserNotificationCenter.current()
             .removePendingNotificationRequests(withIdentifiers: [habit.id.uuidString])

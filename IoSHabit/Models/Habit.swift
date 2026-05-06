@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+// @Model gör att klassen sparas i databasen via SwiftData
 @Model
 final class Habit {
     var id: UUID
@@ -17,12 +18,12 @@ final class Habit {
         self.reminderTime = reminderTime
     }
 
-    // Returnerar true om vanan redan är avcheckad idag
+    // Kollar om vanan är avcheckad idag
     var isCompletedToday: Bool {
         completedDates.contains { Calendar.current.isDateInToday($0) }
     }
 
-    // Checkar av vanan för idag, men bara om den inte redan är avcheckad
+    // Lägger till idag, men bara om det inte redan finns
     func completeToday() {
         guard !isCompletedToday else { return }
         completedDates.append(.now)
@@ -33,7 +34,7 @@ final class Habit {
         completedDates.removeAll { Calendar.current.isDateInToday($0) }
     }
 
-    // Växlar mellan avcheckad/ej avcheckad
+    // Växlar mellan avcheckad och ej avcheckad
     func toggleToday() {
         if isCompletedToday {
             uncompleteToday()
@@ -42,12 +43,11 @@ final class Habit {
         }
     }
 
-    // Antal dagar i rad som vanan utförts, räknat bakåt från idag
+    // Räknar antal dagar i rad bakåt från idag
     var currentStreak: Int {
         let calendar = Calendar.current
 
-        // Gör om varje datum till bara "dag-precision" (tar bort klockslag)
-        // och samla unika dagar i ett Set för snabb sökning
+        // Samla alla unika dagar i ett Set (tar bort klockslag och dubbletter)
         let uniqueDays: Set<DateComponents> = Set(
             completedDates.map { calendar.dateComponents([.year, .month, .day], from: $0) }
         )
@@ -55,7 +55,7 @@ final class Habit {
         var streak = 0
         var dayToCheck = calendar.startOfDay(for: .now)
 
-        // Gå bakåt dag för dag och räkna så länge dagen finns i setet
+        // Loopa bakåt dag för dag tills vi hittar en dag som saknas
         while uniqueDays.contains(calendar.dateComponents([.year, .month, .day], from: dayToCheck)) {
             streak += 1
             guard let previousDay = calendar.date(byAdding: .day, value: -1, to: dayToCheck) else { break }
