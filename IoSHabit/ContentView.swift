@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// Appens huvudvy som visar HabitListView
 struct ContentView: View {
     var body: some View {
         HabitListView()

@@ -1,63 +1,58 @@
 import Foundation
 import SwiftData
 
+// @Model gör att klassen sparas i databasen via SwiftData
 @Model
 final class Habit {
-    var id: UUID
-    var title: String
+    var id: UUID = UUID()
+    // Talar om för SwiftData att "name" hette "title" innan, så datan inte försvinner
+    @Attribute(originalName: "title") var name: String
     var createdAt: Date
-    var completedDates: [Date]
+    var completedDates: [Date] = []
+    var reminderTime: Date?
 
-    init(title: String) {
-        self.id = UUID()
-        self.title = title
+    init(name: String, reminderTime: Date? = nil) {
+        self.name = name
         self.createdAt = .now
-        self.completedDates = []
+        self.reminderTime = reminderTime
     }
 
-    // Returnerar true om vanan redan är avcheckad idag
+    // Kollar om vanan är avcheckad idag
     var isCompletedToday: Bool {
         completedDates.contains { Calendar.current.isDateInToday($0) }
     }
 
-    // Checkar av vanan för idag, men bara om den inte redan är avcheckad
-    func completeToday() {
-        guard !isCompletedToday else { return }
-        completedDates.append(.now)
-    }
-
-    // Tar bort dagens avcheckning
-    func uncompleteToday() {
-        completedDates.removeAll { Calendar.current.isDateInToday($0) }
-    }
-
-    // Växlar mellan avcheckad/ej avcheckad
-    func toggleToday() {
-        if isCompletedToday {
-            uncompleteToday()
-        } else {
-            completeToday()
-        }
-    }
-
-    // Antal dagar i rad som vanan utförts, räknat bakåt från idag
+    // Räknar antal dagar i rad, tillåter att idag inte är avcheckad ännu
     var currentStreak: Int {
         let calendar = Calendar.current
 
-        // Gör om varje datum till bara "dag-precision" (tar bort klockslag)
-        // och samla unika dagar i ett Set för snabb sökning
-        let uniqueDays: Set<DateComponents> = Set(
-            completedDates.map { calendar.dateComponents([.year, .month, .day], from: $0) }
-        )
+        // Normalisera alla datum till kl 00:00 och ta bort dubbletter
+        let uniqueDays = Set(completedDates.map { calendar.startOfDay(for: $0) })
+        let sortedDays = uniqueDays.sorted(by: >)
 
-        var streak = 0
-        var dayToCheck = calendar.startOfDay(for: .now)
+        guard let latest = sortedDays.first else {
+            return 0
+        }
 
-        // Gå bakåt dag för dag och räkna så länge dagen finns i setet
-        while uniqueDays.contains(calendar.dateComponents([.year, .month, .day], from: dayToCheck)) {
-            streak += 1
-            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: dayToCheck) else { break }
-            dayToCheck = previousDay
+        // Om senaste inte är idag eller igår är streaken bruten
+        let today = calendar.startOfDay(for: Date())
+        let daysSinceLatest = calendar.dateComponents([.day], from: latest, to: today).day ?? 0
+
+        if daysSinceLatest > 1 {
+            return 0
+        }
+
+        // Räkna bakåt dag för dag
+        var streak = 1
+        var expected = calendar.date(byAdding: .day, value: -1, to: latest)!
+
+        for day in sortedDays.dropFirst() {
+            if day == expected {
+                streak += 1
+                expected = calendar.date(byAdding: .day, value: -1, to: expected)!
+            } else {
+                break
+            }
         }
 
         return streak
