@@ -5,7 +5,8 @@ import SwiftData
 @Model
 final class Habit {
     var id: UUID = UUID()
-    var name: String
+    // Talar om för SwiftData att "name" hette "title" innan, så datan inte försvinner
+    @Attribute(originalName: "title") var name: String
     var createdAt: Date
     var completedDates: [Date] = []
     var reminderTime: Date?
